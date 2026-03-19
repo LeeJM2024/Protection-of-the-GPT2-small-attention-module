@@ -65,6 +65,7 @@ OPTEE_OS_COMMON_FLAGS += CFG_TZDRAM_START=0x70000000 CFG_TZDRAM_SIZE=0x0DC00000
    你可以修改host/main.c中sample_mult函数的coin参数来改变模型生成文本的随机性。
 
 ## 命令行参数
+ ```
 -T 0 :全部参数在普通世界推理；-T 1:保护Embedding层参数；
 -T 2 -P <layer_id>: 
 1) 保护Embedding层参数
@@ -72,10 +73,11 @@ OPTEE_OS_COMMON_FLAGS += CFG_TZDRAM_START=0x70000000 CFG_TZDRAM_SIZE=0x0DC00000
 通过 -P <block_id> 指定受保护层（如 -P 0）。该层的 ln1/qkv/attproj/ln2/fc/fcproj 参数只把目标层切片送入 TA，且该层前向在 TA 内连续执行，仅回传最终 residual3 层输出。
 3）最终的 LayerNorm 和 Softmax 在 TA 执行
 lnfw/lnfb 在 -T 2 下加载到 TA，最后一层归一化以及 Softmax 在 TA 内完成，再输出结果
+ ```
 
 **OP-TEE保护大模型**
 实现了对 Transformer 架构的保护，保护了一个 Transformer block 中的所有层结构，包括LN1 归一化层、QKV 线性层、Attention 计算层、Attention 输出投影层、Residual2 残差层、LN2 归一化层、FC 全连接层、GELU 激活层、FCProj 全连接输出投影层、Residual3 残差层。保护了 Token Embedding 参数，以及最后的 LayerNorm 和 Softmax，基本实现了对 GPT2-small 的推理全流程保护。
-但受限于 OP-TEE 有限的 TEE 内存，目前只能实现对其中一个 block 的保护，而 GPT2-small 中共有12个 Transformer block，所以无法完全保证模型推理的安全。
+但受限于 OP-TEE 有限的 TEE 内存，目前只能实现对其中一个 block 的保护，而 GPT2-small 中共有12个 Transformer block，所以无法完全保证模型推理的安全。并且在推理一段时间后，会因内存不足而崩溃。
 
 ## 参考
 - [llm.c](https://github.com/karpathy/llm.c)
